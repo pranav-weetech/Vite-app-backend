@@ -1,0 +1,82 @@
+name: Full CI/CD — Prod (frontend + backend)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Frontend: Install dependencies
+        working-directory: frontend-react
+        run: npm ci
+
+      - name: Frontend: Build
+        working-directory: frontend-react
+        run: npm run build
+
+      - name: Backend: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Backend: Run tests (if defined)
+        working-directory: backend
+        run: |
+          if npm run | grep -q "test"; then
+            npm test
+          else
+            echo "No backend tests defined — skipping."
+          fi
+
+      - name: Backend: Build (if defined)
+        working-directory: backend
+        run: |
+          if npm run | grep -q "build"; then
+            npm run build
+          else
+            echo "No backend build script — skipping."
+          fi
+
+      - name: Deploy frontend to PROD
+        run: |
+          echo "🚀 Deploying frontend to PROD..."
+          sudo rm -rf /var/www/app-prod/*
+          if [ -d frontend-react/dist ]; then
+            sudo cp -r frontend-react/dist/* /var/www/app-prod/
+          elif [ -d frontend-react/build ]; then
+            sudo cp -r frontend-react/build/* /var/www/app-prod/
+          else
+            sudo cp -r frontend-react/* /var/www/app-prod/
+          fi
+          sudo chown -R www-data:www-data /var/www/app-prod
+          sudo chmod -R 755 /var/www/app-prod
+
+      - name: Deploy backend to PROD
+        run: |
+          echo "🚀 Deploying backend to PROD..."
+          sudo systemctl stop backend-api || true
+          sudo rm -rf /var/www/api-prod/*
+          if [ -d backend/dist ]; then
+            sudo cp -r backend/dist/* /var/www/api-prod/
+          else
+            sudo cp -r backend/* /var/www/api-prod/
+          fi
+          sudo chown -R www-data:www-data /var/www/api-prod
+          sudo chmod -R 755 /var/www/api-prod
+          sudo systemctl start backend-api || true
+
+      - name: Restart nginx
+        run: |
+          sudo systemctl restart nginx || true
+          echo "✅ Prod deploy complete"

@@ -1,0 +1,85 @@
+DEBUG MONGO_URI = mongodb://localhost:27017/mydatabase
+🚀 Server is running on port 5000
+✅ MongoDB is Connected
+➡️ GET /api/todo/getall
+➡️ GET /api/todo/getall
+➡️ GET /api/todo/getall
+➡️ GET /api/todo/getall
+➡️ GET /
+➡️ GET /api/todo/getall
+➡️ GET /api/todo/getall
+➡️ OPTIONS /api/todo/create
+➡️ POST /api/todo/create
+createTask ~ task: dfdfv
+➡️ GET /api/todo/getall
+➡️ POST /api/todo/create
+createTask ~ task: fvdvd
+➡️ GET /api/todo/getall
+➡️ POST /api/todo/create
+createTask ~ task: vdfvfd
+➡️ GET /api/todo/getall
+➡️ OPTIONS /api/todo/create
+➡️ POST /api/todo/create
+createTask ~ task: sdd
+➡️ GET /api/todo/getall
+➡️ OPTIONS /api/todo/delete
+➡️ DELETE /api/todo/delete
+deleteTask ~ deletedTask: {
+  _id: new ObjectId('691a9abc43a042cf6fbf6643'),
+  task: 'vfdfv',
+  complete: false,
+  createdAt: 2025-11-17T03:47:08.433Z,
+  updatedAt: 2025-11-17T03:47:08.433Z,
+  __v: 0
+}
+➡️ GET /api/todo/getall
+➡️ DELETE /api/todo/delete
+deleteTask ~ deletedTask: {
+  _id: new ObjectId('691a9abd43a042cf6fbf6646'),
+  task: 'dvdv',
+  complete: false,
+  createdAt: 2025-11-17T03:47:09.765Z,
+  updatedAt: 2025-11-17T03:47:09.765Z,
+  __v: 0
+}
+➡️ GET /api/todo/getall
+➡️ DELETE /api/todo/delete
+deleteTask ~ deletedTask: {
+  _id: new ObjectId('691aa2fdcff12b8936192f90'),
+  task: 'dfdfv',
+  complete: false,
+  createdAt: 2025-11-17T04:22:21.034Z,
+  updatedAt: 2025-11-17T04:22:21.034Z,
+  __v: 0
+}
+➡️ GET /api/todo/getall
+➡️ DELETE /api/todo/delete
+deleteTask ~ deletedTask: {
+  _id: new ObjectId('691aa2fecff12b8936192f93'),
+  task: 'fvdvd',
+  complete: false,
+  createdAt: 2025-11-17T04:22:22.534Z,
+  updatedAt: 2025-11-17T04:22:22.534Z,
+  __v: 0
+}
+➡️ GET /api/todo/getall
+➡️ DELETE /api/todo/delete
+deleteTask ~ deletedTask: {
+  _id: new ObjectId('691aa300cff12b8936192f96'),
+  task: 'vdfvfd',
+  complete: false,
+  createdAt: 2025-11-17T04:22:24.372Z,
+  updatedAt: 2025-11-17T04:22:24.372Z,
+  __v: 0
+}
+➡️ GET /api/todo/getall
+➡️ DELETE /api/todo/delete
+deleteTask ~ deletedTask: {
+  _id: new ObjectId('691aa302cff12b8936192f99'),
+  task: 'sdd',
+  complete: false,
+  createdAt: 2025-11-17T04:22:26.941Z,
+  updatedAt: 2025-11-17T04:22:26.941Z,
+  __v: 0
+}
+➡️ GET /api/todo/getall
