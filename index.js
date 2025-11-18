@@ -52,7 +52,7 @@ app.use(
 // 📦 Routes
 // ===============================================
 app.get("/", (req, res) => {
-  res.send("BACKENDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD✅");
+  res.send("BACKENDDDDDDDDDD✅");
 });
 
 app.use("/api/todo", todoRoutes);
