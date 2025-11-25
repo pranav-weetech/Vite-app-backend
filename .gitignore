@@ -1,3 +1,4 @@
 /node_modules
 .env
 pac
+actions-runner/*
