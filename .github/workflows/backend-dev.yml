@@ -1,0 +1,64 @@
+name: Deploy Backend to Dev (Port 5000)
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      # 1️⃣ Checkout the latest code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 1.1️⃣ Pull latest changes explicitly
+      - name: Pull latest changes
+        working-directory: /home/ubuntu/backend
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Pulling latest changes from dev branch..."
+          git reset --hard
+          git clean -fd
+          git pull origin dev
+
+      # 2️⃣ Setup Node.js (if needed for backend)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 3️⃣ Install backend dependencies
+      - name: Install dependencies
+        working-directory: /home/ubuntu/backend
+        run: |
+          echo "Installing npm dependencies..."
+          npm ci
+
+      # 4️⃣ Copy/update .env file (optional if you have separate envs)
+      - name: Copy .env file
+        working-directory: /home/ubuntu/backend
+        run: |
+          echo "Using existing .env for dev deployment"
+
+      # 5️⃣ Stop existing backend process (if running)
+      - name: Stop existing backend
+        working-directory: /home/ubuntu/backend
+        run: |
+          echo "Stopping existing backend..."
+          pkill -f "node index.js" || echo "No existing process found"
+
+      # 6️⃣ Start backend process
+      - name: Start backend
+        working-directory: /home/ubuntu/backend
+        run: |
+          echo "Starting backend..."
+          nohup node index.js > backend.log 2>&1 &
+
+      # 7️⃣ Confirm running
+      - name: Check backend process
+        run: |
+          ps aux | grep "[n]ode index.js"
