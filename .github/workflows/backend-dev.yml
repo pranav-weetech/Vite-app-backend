@@ -1,4 +1,4 @@
-name: Backend Deploy (Main & Dev)
+name: Backend Deploy (Main + Dev)
 
 on:
   push:
@@ -11,44 +11,54 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # 1️⃣ Checkout must be first
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Print branch name
+      # 2️⃣ Show branch name
       - name: Print branch name
-        run: "Branch triggered: ${{ github.ref_name }}"
+        run: echo "🚀 Branch triggered: ${{ github.ref_name }}"
 
-      # 3️⃣ Print working directory
+      # 3️⃣ Debug current directory
       - name: Print working directory
         run: pwd
 
       # 4️⃣ Pull latest backend code
       - name: Pull latest backend code
-        working-directory: backend
+        working-directory: /home/ubuntu/backend
         run: |
-          echo "Pulling latest changes..."
+          echo "📥 Pulling latest code into /home/ubuntu/backend ..."
           git fetch origin ${{ github.ref_name }}
           git reset --hard origin/${{ github.ref_name }}
           git clean -fd
+          echo "✔ Synced correctly."
 
       # 5️⃣ Install dependencies
       - name: Install dependencies
-        working-directory: backend
+        working-directory: /home/ubuntu/backend
         run: |
-          echo "Installing npm packages..."
+          echo "📦 Installing packages..."
           npm install
+          echo "✔ Dependencies installed."
 
-      # 6️⃣ Kill old backend process
-      - name: Kill backend on port 5000
+      # 6️⃣ Stop old backend
+      - name: Kill old backend
         run: |
-          echo "Killing old Node process..."
+          echo "🛑 Killing anything on port 5000..."
           fuser -k 5000/tcp || true
+          echo "✔ Old backend process killed."
 
       # 7️⃣ Start backend
       - name: Start backend
-        working-directory: backend
+        working-directory: /home/ubuntu/backend
         run: |
-          echo "Starting backend..."
+          echo "🚀 Starting backend on port 5000..."
           nohup node index.js > backend.log 2>&1 &
-          echo "Backend started on port 5000"
+          echo "✔ Backend started."
+
+      # 8️⃣ Debug
+      - name: Check running backend
+        run: |
+          echo "🔍 Showing Node processes..."
+          ps aux | grep node
+          echo "🏁 Deployment complete."
