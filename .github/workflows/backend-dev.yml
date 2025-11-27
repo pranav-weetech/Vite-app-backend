@@ -46,14 +46,7 @@ jobs:
           echo "📦 Installing npm packages..."
           npm ci
           echo "✔ Dependencies installed."
-
-      # 6️⃣ Kill old backend process
-      - name: Kill old backend
-        run: |
-          echo "🛑 Killing anything running on port 5000..."
-          fuser -k 5000/tcp || true
-          echo "✔ Port 5000 cleared."
-
+          #
       # 7️⃣ Start backend
       - name: Start backend
         working-directory: ${{ github.workspace }}
