@@ -12,7 +12,7 @@ jobs:
 
     steps:
 
-      # 1️⃣ Checkout repository (always first)
+      # 1️⃣ Checkout repository (required by Actions)
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -21,7 +21,7 @@ jobs:
         run: |
           echo "🚀 Branch triggered: ${{ github.ref_name }}"
 
-      # 3️⃣ Print working directory
+      # 3️⃣ Print current working directory
       - name: Print working directory
         run: |
           echo "👀 Current directory:"
@@ -39,15 +39,23 @@ jobs:
             echo "📌 Deploying DEV backend → /home/ubuntu/backend-runner"
           fi
 
-      # 5️⃣ Pull latest backend code
+      # 5️⃣ Pull latest backend code (clone if directory doesn't exist)
       - name: Pull latest backend code
-        working-directory: ${{ steps.backend_dir.outputs.dir }}
         run: |
-          echo "📥 Pulling latest code for branch: ${{ github.ref_name }}"
-          git fetch origin ${{ github.ref_name }}
-          git reset --hard origin/${{ github.ref_name }}
-          git clean -fd
-          echo "✔ Latest code synced."
+          BACKEND_DIR="${{ steps.backend_dir.outputs.dir }}"
+          echo "📥 Checking backend folder: $BACKEND_DIR"
+          
+          if [ ! -d "$BACKEND_DIR/.git" ]; then
+            echo "📂 Directory does not exist or not a git repo. Cloning branch ${{ github.ref_name }}..."
+            git clone --branch ${{ github.ref_name }} git@github.com:pranav-weetech/Vite-app-backend.git "$BACKEND_DIR"
+          else
+            echo "🔄 Directory exists, fetching latest changes..."
+            cd "$BACKEND_DIR"
+            git fetch origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+            git clean -fd
+          fi
+          echo "✔ Backend code is up-to-date."
 
       # 6️⃣ Install dependencies
       - name: Install dependencies
@@ -57,10 +65,10 @@ jobs:
           npm ci
           echo "✔ Dependencies installed."
 
-      # 7️⃣ Kill old backend on port 5000
+      # 7️⃣ Kill any process on port 5000
       - name: Kill old backend
         run: |
-          echo "🛑 Killing anything running on port 5000..."
+          echo "🛑 Killing any process on port 5000..."
           fuser -k 5000/tcp || true
           echo "✔ Port 5000 cleared."
 
@@ -72,9 +80,9 @@ jobs:
           nohup node index.js > backend.log 2>&1 &
           echo "✔ Backend started successfully!"
 
-      # 9️⃣ Debug running Node processes
+      # 9️⃣ Debug running processes
       - name: Check running Node processes
         run: |
-          echo "🔎 Running Node processes:"
+          echo "🔎 Currently running Node processes:"
           ps aux | grep node
           echo "🏁 Deployment complete."
