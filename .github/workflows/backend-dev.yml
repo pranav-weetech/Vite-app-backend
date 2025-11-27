@@ -2,7 +2,7 @@ name: Backend Deploy (Main & Dev)
 
 on:
   push:
-    branches: 
+    branches:
       - main
       - dev
 
@@ -11,49 +11,35 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # Step 1: Print branch name
       - name: Print branch name
-        run: echo "🔹 Branch triggered: ${{ github.ref_name }}"
+        run: echo "Branch triggered: ${{ github.ref_name }}"
 
-      # Step 2: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 3: Print working directory
-      - name: Show working directory
-        run: echo "🔹 Working directory: $(pwd)"
+      - name: Print working directory
+        run: echo "Working directory: $(pwd)"
 
-      # Step 4: Navigate to backend folder
-      - name: Go to backend directory
+      - name: Pull latest backend code
         run: |
-          echo "🔹 Entering backend directory..."
           cd backend
-          echo "🔹 Now inside: $(pwd)"
-
-      # Step 5: Pull latest changes
-      - name: Pull latest code
-        run: |
-          echo "🔹 Pulling latest changes..."
-          cd backend
+          echo "Pulling latest changes..."
           git pull origin ${{ github.ref_name }}
 
-      # Step 6: Install dependencies
-      - name: Install NPM packages
+      - name: Install dependencies
         run: |
-          echo "🔹 Installing dependencies..."
           cd backend
+          echo "Installing dependencies..."
           npm install
 
-      # Step 7: Stop old backend (if running)
-      - name: Kill existing Node process
+      - name: Kill existing backend on port 5000
         run: |
-          echo "🔹 Killing old backend on port 5000..."
+          echo "Killing old Node process..."
           fuser -k 5000/tcp || true
 
-      # Step 8: Start backend
       - name: Start backend
         run: |
-          echo "🔹 Starting backend on port 5000..."
           cd backend
+          echo "Starting backend..."
           nohup node index.js > backend.log 2>&1 &
-          echo "🔹 Backend started successfully!"
+          echo "Backend started on port 5000"
