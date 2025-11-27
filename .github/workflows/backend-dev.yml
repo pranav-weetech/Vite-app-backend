@@ -12,7 +12,7 @@ jobs:
 
     steps:
 
-      # 1️⃣ Checkout repository (required by Actions)
+      # 1️⃣ Checkout repository (always first)
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -27,7 +27,7 @@ jobs:
           echo "👀 Current directory:"
           pwd
 
-      # 4️⃣ Select deployment path based on branch
+      # 4️⃣ Select backend folder based on branch
       - name: Select deployment directory
         id: backend_dir
         run: |
@@ -35,27 +35,24 @@ jobs:
             echo "dir=/home/ubuntu/backend" >> $GITHUB_OUTPUT
             echo "📌 Deploying MAIN backend → /home/ubuntu/backend"
           else
-            echo "dir=/home/ubuntu/backend-runner" >> $GITHUB_OUTPUT
-            echo "📌 Deploying DEV backend → /home/ubuntu/backend-runner"
+            echo "dir=/home/ubuntu/backend/backend-runner" >> $GITHUB_OUTPUT
+            echo "📌 Deploying DEV backend → /home/ubuntu/backend/backend-runner"
           fi
 
-      # 5️⃣ Pull latest backend code (clone if directory doesn't exist)
+      # 5️⃣ Pull latest backend code
       - name: Pull latest backend code
+        working-directory: ${{ steps.backend_dir.outputs.dir }}
         run: |
-          BACKEND_DIR="${{ steps.backend_dir.outputs.dir }}"
-          echo "📥 Checking backend folder: $BACKEND_DIR"
-          
-          if [ ! -d "$BACKEND_DIR/.git" ]; then
-            echo "📂 Directory does not exist or not a git repo. Cloning branch ${{ github.ref_name }}..."
-            git clone --branch ${{ github.ref_name }} git@github.com:pranav-weetech/Vite-app-backend.git "$BACKEND_DIR"
+          echo "📥 Pulling latest code for branch: ${{ github.ref_name }}"
+          if [ ! -d ".git" ]; then
+            echo "⚠️ No git repo found, cloning fresh..."
+            git clone --branch ${{ github.ref_name }} git@github.com:pranav-weetech/Vite-app-backend.git .
           else
-            echo "🔄 Directory exists, fetching latest changes..."
-            cd "$BACKEND_DIR"
             git fetch origin ${{ github.ref_name }}
             git reset --hard origin/${{ github.ref_name }}
             git clean -fd
           fi
-          echo "✔ Backend code is up-to-date."
+          echo "✔ Latest code synced."
 
       # 6️⃣ Install dependencies
       - name: Install dependencies
@@ -65,7 +62,7 @@ jobs:
           npm ci
           echo "✔ Dependencies installed."
 
-      # 7️⃣ Kill any process on port 5000
+      # 7️⃣ Kill old backend on port 5000
       - name: Kill old backend
         run: |
           echo "🛑 Killing any process on port 5000..."
@@ -80,9 +77,9 @@ jobs:
           nohup node index.js > backend.log 2>&1 &
           echo "✔ Backend started successfully!"
 
-      # 9️⃣ Debug running processes
+      # 9️⃣ Debug running node processes
       - name: Check running Node processes
         run: |
-          echo "🔎 Currently running Node processes:"
+          echo "🔎 Running node processes:"
           ps aux | grep node
           echo "🏁 Deployment complete."
