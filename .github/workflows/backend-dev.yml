@@ -1,8 +1,8 @@
-name: Backend Deploy (Main + Dev)
+name: Backend Deploy (Main & Dev)
 
 on:
   push:
-    branches:
+    branches: 
       - main
       - dev
 
@@ -13,60 +13,47 @@ jobs:
     steps:
       # Step 1: Print branch name
       - name: Print branch name
-        run: echo "Branch triggered: ${{ github.ref_name }}"
+        run: echo "🔹 Branch triggered: ${{ github.ref_name }}"
 
-      # Step 2: Checkout code
+      # Step 2: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 3: Choose deployment path based on branch
-      - name: Select deployment path
-        id: path
-        run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "dir=/home/ubuntu/backend" >> $GITHUB_OUTPUT
-            echo "Deploying MAIN branch"
-          else
-            echo "dir=/home/ubuntu/backend-dev" >> $GITHUB_OUTPUT
-            echo "Deploying DEV branch"
-          fi
+      # Step 3: Print working directory
+      - name: Show working directory
+        run: echo "🔹 Working directory: $(pwd)"
 
-      # Step 4: Pull latest code
+      # Step 4: Navigate to backend folder
+      - name: Go to backend directory
+        run: |
+          echo "🔹 Entering backend directory..."
+          cd backend
+          echo "🔹 Now inside: $(pwd)"
+
+      # Step 5: Pull latest changes
       - name: Pull latest code
-        working-directory: ${{ steps.path.outputs.dir }}
         run: |
-          echo "Syncing backend folder..."
-          git fetch origin ${{ github.ref_name }}
-          git reset --hard origin/${{ github.ref_name }}
-          git clean -fd
-          echo "Latest code pulled."
+          echo "🔹 Pulling latest changes..."
+          cd backend
+          git pull origin ${{ github.ref_name }}
 
-      # Step 5: Install dependencies
-      - name: Install dependencies
-        working-directory: ${{ steps.path.outputs.dir }}
+      # Step 6: Install dependencies
+      - name: Install NPM packages
         run: |
-          echo "Installing dependencies..."
-          npm ci
-          echo "Dependencies installed."
+          echo "🔹 Installing dependencies..."
+          cd backend
+          npm install
 
-      # Step 6: Kill old backend
-      - name: Kill old backend
+      # Step 7: Stop old backend (if running)
+      - name: Kill existing Node process
         run: |
-          echo "Killing port 5000..."
+          echo "🔹 Killing old backend on port 5000..."
           fuser -k 5000/tcp || true
-          echo "Old backend killed."
 
-      # Step 7: Start backend
+      # Step 8: Start backend
       - name: Start backend
-        working-directory: ${{ steps.path.outputs.dir }}
         run: |
-          echo "Starting backend..."
+          echo "🔹 Starting backend on port 5000..."
+          cd backend
           nohup node index.js > backend.log 2>&1 &
-          echo "Backend started."
-
-      # Step 8: Debug processes
-      - name: Check running processes
-        run: |
-          echo "Running node processes:"
-          ps aux | grep node
-          echo "Deployment complete."
+          echo "🔹 Backend started successfully!"
