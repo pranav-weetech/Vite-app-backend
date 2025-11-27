@@ -11,24 +11,29 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # 1️⃣ Print triggered branch
-      - name: Print branch
+
+      # 1️⃣ Checkout latest code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Print branch name
+      - name: Print branch name
         run: |
           echo "🚀 Branch triggered: ${{ github.ref_name }}"
 
-      # 2️⃣ Select backend folder
+      # 3️⃣ Select backend directory based on branch
       - name: Select deployment directory
         id: backend_dir
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
             echo "dir=/home/ubuntu/backend" >> $GITHUB_OUTPUT
-            echo "📌 Deploying MAIN backend"
+            echo "📌 Deploying MAIN backend → /home/ubuntu/backend"
           else
             echo "dir=/home/ubuntu/backend-runner" >> $GITHUB_OUTPUT
-            echo "📌 Deploying DEV backend"
+            echo "📌 Deploying DEV backend → /home/ubuntu/backend-runner"
           fi
 
-      # 3️⃣ Pull latest backend code manually
+      # 4️⃣ Pull latest backend code
       - name: Pull latest backend code
         working-directory: ${{ steps.backend_dir.outputs.dir }}
         run: |
@@ -36,34 +41,34 @@ jobs:
           git fetch origin ${{ github.ref_name }}
           git reset --hard origin/${{ github.ref_name }}
           git clean -fd
-          echo "✔ Latest code synced"
+          echo "✔ Latest code synced."
 
-      # 4️⃣ Install dependencies
+      # 5️⃣ Install dependencies
       - name: Install dependencies
         working-directory: ${{ steps.backend_dir.outputs.dir }}
         run: |
           echo "📦 Installing npm packages..."
           npm ci
-          echo "✔ Dependencies installed"
+          echo "✔ Dependencies installed."
 
-      # 5️⃣ Kill old backend process
+      # 6️⃣ Kill old backend process
       - name: Kill old backend
         run: |
           echo "🛑 Killing anything running on port 5000..."
           fuser -k 5000/tcp || true
-          echo "✔ Port 5000 cleared"
+          echo "✔ Port 5000 cleared."
 
-      # 6️⃣ Start backend
+      # 7️⃣ Start backend
       - name: Start backend
         working-directory: ${{ steps.backend_dir.outputs.dir }}
         run: |
           echo "🚀 Starting backend on port 5000..."
           nohup node index.js > backend.log 2>&1 &
-          echo "✔ Backend started"
+          echo "✔ Backend started successfully!"
 
-      # 7️⃣ Debug: show running Node processes
+      # 8️⃣ Debug running processes
       - name: Check running Node processes
         run: |
-          echo "🔎 Running node processes:"
+          echo "🔎 Running Node processes:"
           ps aux | grep node
-          echo "🏁 Deployment complete"
+          echo "🏁 Deployment complete."
