@@ -39,7 +39,8 @@ const allowedOrigins = [
   "http://localhost:5173", // Vite dev server
   "http://localhost:81",   // Nginx reverse proxy
   "http://75.101.222.232:5173", // EC2 Vite frontend
-  "http://75.101.222.232:81",   // EC2 Nginx frontend
+  "http://75.101.222.232:81",
+  "http://75.101.222.232:80",
 ];
 
 app.use(

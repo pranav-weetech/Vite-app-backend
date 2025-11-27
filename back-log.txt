@@ -1,0 +1,10 @@
+DEBUG MONGO_URI = mongodb://pranav:27l2J4M2RmVk65@103.250.149.106:27027/viteapp-test
+🚀 Server is running on port 5000
+✅ MongoDB is Connected
+➡️ GET /api/todo/getall
+➡️ GET /api/todo/getall
+➡️ GET /api/todo/getall
+➡️ GET /api/todo/getall
+➡️ GET /api/todo/getall
+➡️ GET /api/todo/getall
+➡️ GET /api/todo/getall
