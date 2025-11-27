@@ -1,8 +1,9 @@
-name: Deploy Backend to Dev (Port 5000)
+name: Backend: Deploy for Main & Dev
 
 on:
   push:
     branches:
+      - main
       - dev
 
 jobs:
@@ -10,55 +11,83 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # 1️⃣ Checkout the latest code
+      # ----------------------------------------------
+      # 1️⃣ Identify branch
+      # ----------------------------------------------
+      - name: Print branch name
+        run: |
+          echo "🔍 Branch triggered: ${{ github.ref_name }}"
+
+      # ----------------------------------------------
+      # 2️⃣ Checkout repository
+      # ----------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1.1️⃣ Pull latest changes explicitly
-      - name: Pull latest changes
-        working-directory: /home/ubuntu/backend
+      # ----------------------------------------------
+      # 3️⃣ Set backend directory based on branch
+      # ----------------------------------------------
+      - name: Select deployment path
+        id: path
         run: |
-          echo "Current directory:"
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "⭐ Deploying MAIN branch"
+            echo "dir=/home/ubuntu/backend" >> $GITHUB_OUTPUT
+          else
+            echo "🟡 Deploying DEV branch"
+            echo "dir=/home/ubuntu/backend-dev" >> $GITHUB_OUTPUT
+          fi
+
+      # ----------------------------------------------
+      # 4️⃣ Pull latest changes (HARD RESET)
+      # ----------------------------------------------
+      - name: Pull latest backend code
+        working-directory: ${{ steps.path.outputs.dir }}
+        run: |
+          echo "🔄 Syncing backend directory..."
           pwd
-          echo "Pulling latest changes from dev branch..."
-          git reset --hard
+          echo "Fetching latest main branch..."
+          git fetch origin ${{ github.ref_name }}
+          echo "Resetting to remote branch..."
+          git reset --hard origin/${{ github.ref_name }}
+          echo "Cleaning old files..."
           git clean -fd
-          git pull origin dev
+          echo "✅ Latest code pulled successfully."
 
-      # 2️⃣ Setup Node.js (if needed for backend)
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      # 3️⃣ Install backend dependencies
-      - name: Install dependencies
-        working-directory: /home/ubuntu/backend
+      # ----------------------------------------------
+      # 5️⃣ Install dependencies
+      # ----------------------------------------------
+      - name: Install packages
+        working-directory: ${{ steps.path.outputs.dir }}
         run: |
-          echo "Installing npm dependencies..."
+          echo "📦 Installing npm dependencies..."
           npm ci
+          echo "✅ Dependencies installed."
 
-      # 4️⃣ Copy/update .env file (optional if you have separate envs)
-      - name: Copy .env file
-        working-directory: /home/ubuntu/backend
+      # ----------------------------------------------
+      # 6️⃣ Kill old backend process
+      # ----------------------------------------------
+      - name: Kill old backend
         run: |
-          echo "Using existing .env for dev deployment"
+          echo "🛑 Killing anything running on port 5000..."
+          fuser -k 5000/tcp || true
+          echo "✅ Old backend stopped."
 
-      # 5️⃣ Stop existing backend process (if running)
-      - name: Stop existing backend
-        working-directory: /home/ubuntu/backend
-        run: |
-          echo "Stopping existing backend..."
-          pkill -f "node index.js" || echo "No existing process found"
-
-      # 6️⃣ Start backend process
+      # ----------------------------------------------
+      # 7️⃣ Start backend using nohup
+      # ----------------------------------------------
       - name: Start backend
-        working-directory: /home/ubuntu/backend
+        working-directory: ${{ steps.path.outputs.dir }}
         run: |
-          echo "Starting backend..."
+          echo "🚀 Starting backend on port 5000..."
           nohup node index.js > backend.log 2>&1 &
+          echo "✅ Backend started successfully."
 
-      # 7️⃣ Confirm running
-      - name: Check backend process
+      # ----------------------------------------------
+      # 8️⃣ Debug: show running node processes
+      # ----------------------------------------------
+      - name: Check running backend process
         run: |
-          ps aux | grep "[n]ode index.js"
+          echo "🔍 Showing running Node processes..."
+          ps aux | grep node
+          echo "🏁 Deployment completed successfully."
