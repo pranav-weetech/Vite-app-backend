@@ -11,44 +11,44 @@ jobs:
     runs-on: self-hosted
 
     steps:
-
-      # 1️⃣ Checkout must ALWAYS be the first step
+      # 1️⃣ Checkout must be first
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # 2️⃣ Print branch name
       - name: Print branch name
-        run: "Branch triggered: ${{ github.ref_name }}"
+        run: echo "Branch triggered: ${{ github.ref_name }}"
 
       # 3️⃣ Print working directory
       - name: Print working directory
         run: pwd
 
-      # 4️⃣ Pull latest code
+      # 4️⃣ Pull latest backend code
       - name: Pull latest backend code
+        working-directory: backend
         run: |
-          cd backend
           echo "Pulling latest changes..."
           git fetch origin ${{ github.ref_name }}
           git reset --hard origin/${{ github.ref_name }}
+          git clean -fd
 
       # 5️⃣ Install dependencies
       - name: Install dependencies
+        working-directory: backend
         run: |
-          cd backend
-          echo "Installing dependencies..."
+          echo "Installing npm packages..."
           npm install
 
-      # 6️⃣ Kill old process
-      - name: Kill existing backend
+      # 6️⃣ Kill old backend process
+      - name: Kill backend on port 5000
         run: |
-          echo "Killing old backend on port 5000..."
+          echo "Killing old Node process..."
           fuser -k 5000/tcp || true
 
       # 7️⃣ Start backend
       - name: Start backend
+        working-directory: backend
         run: |
-          cd backend
           echo "Starting backend..."
           nohup node index.js > backend.log 2>&1 &
           echo "Backend started on port 5000"
