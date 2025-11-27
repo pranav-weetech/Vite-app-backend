@@ -1,4 +1,4 @@
-name: Backend: Deploy for Main & Dev
+name: Backend Deploy (Main + Dev)
 
 on:
   push:
@@ -11,83 +11,62 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # ----------------------------------------------
       # 1️⃣ Identify branch
-      # ----------------------------------------------
       - name: Print branch name
-        run: |
-          echo "🔍 Branch triggered: ${{ github.ref_name }}"
+        run: echo "Branch triggered: ${{ github.ref_name }}"
 
-      # ----------------------------------------------
-      # 2️⃣ Checkout repository
-      # ----------------------------------------------
+      # 2️⃣ Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ----------------------------------------------
-      # 3️⃣ Set backend directory based on branch
-      # ----------------------------------------------
+      # 3️⃣ Determine backend directory
       - name: Select deployment path
         id: path
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "⭐ Deploying MAIN branch"
             echo "dir=/home/ubuntu/backend" >> $GITHUB_OUTPUT
+            echo "Deploying MAIN branch"
           else
-            echo "🟡 Deploying DEV branch"
             echo "dir=/home/ubuntu/backend-dev" >> $GITHUB_OUTPUT
+            echo "Deploying DEV branch"
           fi
 
-      # ----------------------------------------------
-      # 4️⃣ Pull latest changes (HARD RESET)
-      # ----------------------------------------------
-      - name: Pull latest backend code
+      # 4️⃣ Sync backend (force update)
+      - name: Pull latest code
         working-directory: ${{ steps.path.outputs.dir }}
         run: |
-          echo "🔄 Syncing backend directory..."
-          pwd
-          echo "Fetching latest main branch..."
+          echo "Syncing backend folder..."
           git fetch origin ${{ github.ref_name }}
-          echo "Resetting to remote branch..."
           git reset --hard origin/${{ github.ref_name }}
-          echo "Cleaning old files..."
           git clean -fd
-          echo "✅ Latest code pulled successfully."
+          echo "Latest code pulled."
 
-      # ----------------------------------------------
-      # 5️⃣ Install dependencies
-      # ----------------------------------------------
-      - name: Install packages
+      # 5️⃣ Install deps
+      - name: Install dependencies
         working-directory: ${{ steps.path.outputs.dir }}
         run: |
-          echo "📦 Installing npm dependencies..."
+          echo "Installing dependencies..."
           npm ci
-          echo "✅ Dependencies installed."
+          echo "Dependencies installed."
 
-      # ----------------------------------------------
-      # 6️⃣ Kill old backend process
-      # ----------------------------------------------
+      # 6️⃣ Kill old process
       - name: Kill old backend
         run: |
-          echo "🛑 Killing anything running on port 5000..."
+          echo "Killing port 5000..."
           fuser -k 5000/tcp || true
-          echo "✅ Old backend stopped."
+          echo "Old backend killed."
 
-      # ----------------------------------------------
-      # 7️⃣ Start backend using nohup
-      # ----------------------------------------------
+      # 7️⃣ Restart backend
       - name: Start backend
         working-directory: ${{ steps.path.outputs.dir }}
         run: |
-          echo "🚀 Starting backend on port 5000..."
+          echo "Starting backend..."
           nohup node index.js > backend.log 2>&1 &
-          echo "✅ Backend started successfully."
+          echo "Backend started."
 
-      # ----------------------------------------------
-      # 8️⃣ Debug: show running node processes
-      # ----------------------------------------------
-      - name: Check running backend process
+      # 8️⃣ Debug
+      - name: Check running processes
         run: |
-          echo "🔍 Showing running Node processes..."
+          echo "Running node processes:"
           ps aux | grep node
-          echo "🏁 Deployment completed successfully."
+          echo "Deployment complete."
