@@ -11,15 +11,15 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # 1️⃣ Identify branch
+      # Step 1: Print branch name
       - name: Print branch name
         run: echo "Branch triggered: ${{ github.ref_name }}"
 
-      # 2️⃣ Checkout code
+      # Step 2: Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 3️⃣ Determine backend directory
+      # Step 3: Choose deployment path based on branch
       - name: Select deployment path
         id: path
         run: |
@@ -31,7 +31,7 @@ jobs:
             echo "Deploying DEV branch"
           fi
 
-      # 4️⃣ Sync backend (force update)
+      # Step 4: Pull latest code
       - name: Pull latest code
         working-directory: ${{ steps.path.outputs.dir }}
         run: |
@@ -41,7 +41,7 @@ jobs:
           git clean -fd
           echo "Latest code pulled."
 
-      # 5️⃣ Install deps
+      # Step 5: Install dependencies
       - name: Install dependencies
         working-directory: ${{ steps.path.outputs.dir }}
         run: |
@@ -49,14 +49,14 @@ jobs:
           npm ci
           echo "Dependencies installed."
 
-      # 6️⃣ Kill old process
+      # Step 6: Kill old backend
       - name: Kill old backend
         run: |
           echo "Killing port 5000..."
           fuser -k 5000/tcp || true
           echo "Old backend killed."
 
-      # 7️⃣ Restart backend
+      # Step 7: Start backend
       - name: Start backend
         working-directory: ${{ steps.path.outputs.dir }}
         run: |
@@ -64,7 +64,7 @@ jobs:
           nohup node index.js > backend.log 2>&1 &
           echo "Backend started."
 
-      # 8️⃣ Debug
+      # Step 8: Debug processes
       - name: Check running processes
         run: |
           echo "Running node processes:"
